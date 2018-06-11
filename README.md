@@ -28,3 +28,23 @@ Creates a BEAST2 XML file
 
 
  a template BEAST XML file along with a YAML config file and a trees file (produced through MASTER, or any other tool) to create a set of XMLs (one per tree) that can be run in BEAST to infer parameters.
+
+
+
+
+## Example workflow
+
+```bash
+
+# Create MASTER XML files
+python MakeMasterXML.py -i ../config/
+
+# Run MASTER simulations
+cd ../results/simulations/
+for i in `ls *.xml`; do ~/Documents/Packages/BEASTv2.5.0/bin/beast $i; done
+cd -
+
+# Create BEAST XML files (with different BEAST analysis templates)
+
+
+```

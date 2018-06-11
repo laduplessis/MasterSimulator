@@ -37,7 +37,7 @@ def makeXMLFile(pars, template, outputpath=""):
 	output = template.format(**formatpars)
 
 	if (not os.path.exists(pars["outputpath"])):
-		os.mkdir(pars["outputpath"])
+		os.makedirs(pars["outputpath"])
 
 	outfile = open(pars["outputpath"]+"/"+pars["name"]+".xml", 'w')
 	outfile.write(output)
