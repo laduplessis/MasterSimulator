@@ -55,9 +55,10 @@ cd -
 # (run plotSimulations.R)
 
 # Create BEAST XML files (birth-death skyline)
+python MakeBeastXML.py -i ../config/ -o ../results/inferences/ -x ../templates/inferences/template.bdsky.fixtree.xml -n bdsky.fixtree
 
 # Create BEAST XML files (Bayesian skyline plot)
-
+python MakeBeastXML.py -i ../config/ -o ../results/inferences/ -x ../templates/inferences/template.bsp.fixtree.xml -n bsp.fixtree
 
 # Run inferences
 
