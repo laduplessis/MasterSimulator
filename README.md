@@ -1,6 +1,6 @@
 # Master simulator
 
-This is a framework for simulating phylogenetic trees in MASTER using BEAST2 and then inferring parameters on the simulated trees using variants of the birth-death skyline model. 
+This is a framework for simulating phylogenetic trees in MASTER using BEAST2 and then inferring parameters on the simulated trees using different models. 
 
 The framework is implemented in Python and relies on template XML files for the MASTER simulations and BEAST inferences, as well as config files in YAML for setting model and inference parameters.
 
@@ -20,7 +20,7 @@ The framework is implemented in Python and relies on template XML files for the 
 ### 1.) MakeMasterXML.py
 Creates a MASTER XML file. Input parameters as well as the template XML file should be specified in a YAML config file. If an input directory is supplied, the script will be run on every file in the directory that matches the pattern for a config file (default = `*.cfg`). 
 
-Some parameter conversions are hardcoded into the script, so only one parameterisation needs to be included in the config file. In particular to add in both parameterisations for the birth-death skyline model (as infection/recovery/sampling rates and as reproductiveNumber/becomeUninfectious/samplingProportion). 
+Some parameter conversions for birth-death-sampling type models (as implemented in BEAST2) are hardcoded into the script, so only one parameterisation needs to be included in the config file. In particular to add in both parameterisations for the birth-death skyline model (as infection/recovery/sampling rates and as reproductiveNumber/becomeUninfectious/samplingProportion). 
 
 
 ### 2.) MakeBeastXML.py
@@ -28,14 +28,15 @@ Creates a BEAST2 XML file. Input parameters for the template XML file should be 
 
 The script will look for the output trees of the simulation and iterate through all trees in the simulation output, creating a BEAST2 XML file for each tree. The sampling times of tips in the tree are read from the output file and the tMRCA is set to time = 0.
 
+The script also produces bash scripts for running inferences for each replicate of a simulation, as well as a script for the ETH Zürich cluster (Euler). 
+
+
 ### 3.) CheckBEAST.py
 Need to check if this works the way it is supposed to (summarise results from replicate simulations and automatically check convergence).
 
 
 ### 4.) plotSimulations.R
 Plots the result of the MASTER simulations in R. This file is currently hard-coded for the 3 types of simulations in the project, but can be easily extended.
-
-
 
 
 ## Example workflow
@@ -53,7 +54,14 @@ cd -
 # Plot simulation results in R
 # (run plotSimulations.R)
 
-# Create BEAST XML files (with different BEAST analysis templates)
+# Create BEAST XML files (birth-death skyline)
 
+# Create BEAST XML files (Bayesian skyline plot)
+
+
+# Run inferences
+
+
+# Check convergence and create summary statistics across replicates
 
 ```

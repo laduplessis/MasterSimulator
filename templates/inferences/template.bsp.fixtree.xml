@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast beautitemplate='Standard' beautistatus='' required="BDSKY v1.3.3" version="2.4" 
+       namespace="beast.core
+                 :beast.evolution.alignment
+                 :beast.evolution.tree.coalescent
+                 :beast.core.util
+                 :beast.evolution.nuc
+                 :beast.evolution.operators
+                 :beast.evolution.sitemodel
+                 :beast.evolution.substitutionmodel
+                 :beast.evolution.likelihood
+                 :beast.util">
+
+      <map name="Uniform" >beast.math.distributions.Uniform</map>
+      <map name="Exponential" >beast.math.distributions.Exponential</map>
+      <map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+      <map name="Normal" >beast.math.distributions.Normal</map>
+      <map name="Beta" >beast.math.distributions.Beta</map>
+      <map name="Gamma" >beast.math.distributions.Gamma</map>
+      <map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+      <map name="prior" >beast.math.distributions.Prior</map>
+      <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+      <map name="OneOnX" >beast.math.distributions.OneOnX</map>
+
+
+      <!-- Model used to simulate tree:
+
+        {$reactions}
+
+      -->
+
+      <!-- Dummy alignment with taxa names -->
+      <alignment spec="beast.evolution.alignment.Alignment" id="alignment" dataType="nucleotide">
+          {$alignment}
+      </alignment>
+
+      <tree spec='TreeParser' id='Tree.t:alignment' IsLabelledNewick="true" adjustTipHeights="false" taxa='@alignment' newick='{$tree}'>
+        <trait id="dateTrait.tree" spec="beast.evolution.tree.TraitSet" traitname="date-backward">    
+            {$dateTrait}
+            <taxa id="TaxonSet.alignment" spec="TaxonSet">
+                <alignment idref="alignment"/>
+            </taxa>
+        </trait>
+        <taxonset idref="TaxonSet.alignment"/>
+    </tree>
+
+
+<parameter id="bPopSizes.t" dimension="10" lower="0.0" name="stateNode" upper="380000.0">100</parameter>
+<parameter id="bGroupSizes.t" spec="parameter.IntegerParameter" dimension="10">1</parameter>  
+
+<run id="mcmc" spec="MCMC" chainLength="{$chain}" sampleFromPrior="{$samplePrior}">
+
+      <state id="state" storeEvery="{$state}">
+            <stateNode idref="bPopSizes.t"/>
+            <stateNode idref="bGroupSizes.t"/>       
+      </state>
+
+      <distribution id="prior" spec="util.CompoundDistribution">
+
+          <!-- Treeprior -->
+          <distribution id="BayesianSkyline.t:alignment" spec="BayesianSkyline" groupSizes="@bGroupSizes.t" popSizes="@bPopSizes.t">
+                <treeIntervals id="BSPTreeIntervals.t" spec="TreeIntervals" tree="@Tree.t:alignment"/>
+          </distribution>
+          <distribution id="MarkovChainedPopSizes.t" spec="beast.math.distributions.MarkovChainDistribution" jeffreys="true" parameter="@bPopSizes.t"/>
+
+      </distribution> <!-- prior -->
+
+
+      <!-- begin operators -->
+          <operator id="popSizesScaler.t" spec="ScaleOperator" parameter="@bPopSizes.t" scaleFactor="0.75" weight="15.0"/>
+
+          <operator id="groupSizesDelta.t" spec="DeltaExchangeOperator" integer="true" weight="6.0">
+            <intparameter idref="bGroupSizes.t"/>
+          </operator>
+      <!-- end operators -->
+
+
+      <logger id="tracelog" fileName="{$name}_$(seed).log" logEvery="{$log}" model="@prior" sanitiseHeaders="true" sort="smart">
+            <log idref="prior"/>
+            <log id="TreeHeight.t" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:alignment"/>
+            <log idref="BayesianSkyline.t:alignment"/>
+            <log idref="bPopSizes.t"/>
+            <log idref="bGroupSizes.t"/>
+      </logger>
+
+      <logger id="screenlog" logEvery="{$screen}">
+            <log idref="prior"/>
+            <log id="ESS.0" spec="util.ESS" arg="@prior"/>
+      </logger>
+
+      <logger id="treelog.t:tree" fileName="{$name}_$(seed).trees" logEvery="{$treelog}" mode="tree">
+            <log id="TreeWithMetaDataLogger.t:alignment" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:alignment"/>
+      </logger>
+
+</run>
+
+</beast>
