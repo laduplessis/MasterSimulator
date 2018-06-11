@@ -1,0 +1,86 @@
+<!-- 
+    SEIR model with density-dependence and sampling through time (no rho-sampling)
+
+    Simulate {$nTraj} trajectories.
+
+    Model parameters:
+
+        Fixed populations size = {$popSize}
+
+        Canonincal parameterization:
+            Effective birth rate (lambda)  = {$infectionRate:.8g}
+            Death rate (mu)                = {$recoveryRate:.8g}
+            Sampling rate (psi)            = {$samplingRate:.8g}
+        
+        reproductiveNumber parameterization:
+            Initial reproductiveNumber       = {$reproductiveNumber:.8g}
+            Become uninfectious rate (delta) = {$becomeUninfectiousRate:.8g}
+            Sampling proportion              = {$samplingProportion:.8g}
+
+        All times in years
+
+    Stop simulation when {$treeSize} lineages have been sampled.
+    Discard simulations that went extinct.
+    Retain tree with only sampled lineages.
+-->
+
+<beast version='2.0' namespace='master
+                               :master.model
+                               :master.conditions
+                               :master.outputs
+                               :master.postprocessors'>
+  <run spec='InheritanceEnsemble'
+       nTraj="{$nTraj}"
+       samplePopulationSizes="true"
+       verbosity="1">
+
+    <model spec='Model' id='model'>
+      <population spec='Population' id='S' populationName='S'/>
+      <population spec='Population' id='E' populationName='E'/>
+      <population spec='Population' id='I' populationName='I'/>
+      <population spec='Population' id='R' populationName='R'/>
+      <population spec='Population' id='Y' populationName='Y'/>
+      
+      <reaction spec='Reaction' reactionName="Infection" rate="{$infectionRate:.8g}">
+          S:2 + I:1 -> I:1 + E:1
+      </reaction>
+      <reaction spec='Reaction' reactionName="Incubation" rate="{$incubationRate:.8g}">
+          E:1 -> I:1
+      </reaction>
+      <reaction spec='Reaction' reactionName="Recovery" rate="{$recoveryRate:.8g}">
+          I:1 -> R:1
+      </reaction>
+      <reaction spec='Reaction' reactionName="Sampling" rate="{$samplingRate:.8g}">
+          I:1 -> Y:1
+      </reaction>
+    </model>
+    
+    <initialState spec='InitState'>
+      <populationSize spec='PopulationSize' population='@S' size='{$popSize}'/>
+      <lineageSeed spec='Individual' population='@I'/>
+    </initialState>
+
+    <!-- Simulation will terminate when no lineages remain -->
+    <lineageEndCondition spec='LineageEndCondition' nLineages="0" population="@I" isRejection="false"/>
+    
+    <!-- Simulation will terminate when {$treeSize} lineages have been sampled -->
+    <lineageEndCondition spec='LineageEndCondition' nLineages="{$treeSize}" population="@Y"/>
+
+    <!-- Keep only sampled lineages. -->
+    <!--inheritancePostProcessor spec='LineageFilter' reactionName="Sampling"/-->
+
+    <!-- Keep only sampled lineages. -->
+    <inheritancePostProcessor spec='LineageFilter' populationName="Y"/>
+
+    <!-- Trim off post-sampling lineages. -->
+    <inheritancePostProcessor spec='LineageFilter' populationName="Y" leavesOnly="true" discard="true"/>
+    
+    <!-- Simulation will be repeated until at exactly {$treeSize} sampled lineages exist. -->
+    <postSimCondition spec='LeafCountPostSimCondition' nLeaves="{$treeSize}" exact="true"/>
+    
+    <output spec='NexusOutput'  fileName='{$name}.nexus' collapseSingleChildNodes="true"/>
+    <output spec='NewickOutput' fileName='{$name}.newick' collapseSingleChildNodes="true"/>
+    <output spec='JsonOutput'   fileName='{$name}.json'/>
+  </run>
+</beast>
+
