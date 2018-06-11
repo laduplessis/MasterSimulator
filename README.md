@@ -23,11 +23,17 @@ Creates a MASTER XML file. Input parameters as well as the template XML file sho
 Some parameter conversions are hardcoded into the script, so only one parameterisation needs to be included in the config file. In particular to add in both parameterisations for the birth-death skyline model (as infection/recovery/sampling rates and as reproductiveNumber/becomeUninfectious/samplingProportion). 
 
 
-### 2.) MakeBEASTXML.py
-Creates a BEAST2 XML file
+### 2.) MakeBeastXML.py
+Creates a BEAST2 XML file. Input parameters for the template XML file should be specified in a YAML config file. To make it possible to use the same config file as the simulations the template file, output directory and filename may be specified as input options. If an input directory is supplied, the script will be run on every file in the directory that matches the pattern for a config file (default = `*.cfg`). 
+
+The script will look for the output trees of the simulation and iterate through all trees in the simulation output, creating a BEAST2 XML file for each tree. The sampling times of tips in the tree are read from the output file and the tMRCA is set to time = 0.
+
+### 3.) CheckBEAST.py
+Need to check if this works the way it is supposed to (summarise results from replicate simulations and automatically check convergence).
 
 
- a template BEAST XML file along with a YAML config file and a trees file (produced through MASTER, or any other tool) to create a set of XMLs (one per tree) that can be run in BEAST to infer parameters.
+### 4.) plotSimulations.R
+Plots the result of the MASTER simulations in R. This file is currently hard-coded for the 3 types of simulations in the project, but can be easily extended.
 
 
 
@@ -43,6 +49,9 @@ python MakeMasterXML.py -i ../config/
 cd ../results/simulations/
 for i in `ls *.xml`; do ~/Documents/Packages/BEASTv2.5.0/bin/beast $i; done
 cd -
+
+# Plot simulation results in R
+# (run plotSimulations.R)
 
 # Create BEAST XML files (with different BEAST analysis templates)
 

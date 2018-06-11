@@ -26,7 +26,7 @@ for (model in names(models)) {
     # Get x and y limits for plots
     maxtimes <- c()
     maxpops  <- c()
-    for (i in traces) {
+    for (i in traces) {cd 
         maxtimes <- c(maxtimes, max(sims$trajectories[[i]]$t))
         
         popmax <- c()
