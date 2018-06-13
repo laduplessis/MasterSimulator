@@ -35,7 +35,7 @@
       </alignment>
 
       <tree spec='TreeParser' id='Tree.t:alignment' IsLabelledNewick="true" adjustTipHeights="false" taxa='@alignment' newick='{$tree}'>
-        <trait id="dateTrait.tree" spec="beast.evolution.tree.TraitSet" traitname="date-backward">    
+        <trait id="dateTrait.tree" spec="beast.evolution.tree.TraitSet" traitname="{$dateTrait}">    
             {$dateTrait}
             <taxa id="TaxonSet.alignment" spec="TaxonSet">
                 <alignment idref="alignment"/>

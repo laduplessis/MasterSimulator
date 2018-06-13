@@ -82,9 +82,15 @@ def writeReactions(model, output):
 #
 
 # Read sampling times from tree and MASTER simulation and check that they are the same before returning
-def getSamplingTimes(simtrajectories, newicktree, tol=1e-6):
+# 
+# If forwards = True  gives times as time from tMRCA
+# If forwards = False gives times as time from most recent sample
+#
+# If fromOrigin and forwards = True then times are measured from the origin of the simulation
+def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, fromOrigin=False):
 
 	#print(simtrajectories['Y'])
+	origin = max(simtrajectories['t'])
 
 	# Sampling times from json file
 	nsamples      = int(simtrajectories['Y'][-1])
@@ -95,8 +101,8 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6):
 		if (sampling[i] == 1):
 			samplingtimes[j] = simtrajectories['t'][i+1]
 			j -= 1
-	#
-	samplingtimes = (samplingtimes[0]-samplingtimes)
+	#	
+	samplingtimes = (origin-samplingtimes)
 
 	# Sampling times from tree
 	tree    = Nexus.Trees.Tree(newicktree)
@@ -107,17 +113,28 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6):
 		label = int(tree.get_taxa(node_id=leaves[i])[0])
 		heights[label-1] = tree.sum_branchlength(node=leaves[i])
 	#
-	treetimes = max(heights)-heights
-
+	tmrca = max(heights)
+	treetimes = tmrca-heights
+	
 	# Compare times	
 	i = 0
 	for t in sorted(treetimes):
 		#sys.stdout.write('\n\t\t\t%.13f=%.13f' %(t, samplingtimes[i]))
 		if (samplingtimes[i]-t > tol):
 			sys.stdout.write("ERROR! Sampling times do not agree!\n")
+			#sys.stdout.write("%f\t%f\n" % (samplingtimes[i], t))
 			sys.exit()
 		i += 1
 	#
+
+	# Gap between origin and tMRCA
+	if (forwards == True):
+		treetimes = (tmrca-treetimes)
+
+		if (fromOrigin == True):
+			treetimes = treetimes + (origin-tmrca)
+
+
 
 	return(treetimes)
 #
@@ -149,7 +166,19 @@ def formatPars(pars, tree, model, simtrajectories):
 	output_dates = io.StringIO()
 	output_model = io.StringIO()
 
-	samplingTimes = getSamplingTimes(simtrajectories, tree)
+	# Add default date direction if not defined
+	if ("dateTrait" not in pars.keys()):
+		pars["dateTrait"] = "date"
+
+	# Add default fromOrigin if not defined
+	if ("fromOrigin" not in pars.keys()):
+		pars["fromOrigin"] = False
+
+	print(pars["fromOrigin"])
+
+	samplingTimes = getSamplingTimes(simtrajectories, tree, forwards=(pars["dateTrait"] != "date-backward"), fromOrigin=(pars["fromOrigin"]))
+
+	#datetrait =  "date"  "date-forward" "date-backward";
 
 	writeDateTrait(samplingTimes, output_dates)
 	writeAlignment(len(samplingTimes), output_align)

@@ -4,6 +4,8 @@ This is a framework for simulating phylogenetic trees in MASTER using BEAST2 and
 
 The framework is implemented in Python and relies on template XML files for the MASTER simulations and BEAST inferences, as well as config files in YAML for setting model and inference parameters.
 
+The scripts are compatible with BEAST 2.5.0 and MASTER 6.0.0
+
 
 ## File formats
 
@@ -66,3 +68,8 @@ python MakeBeastXML.py -i ../config/ -o ../results/inferences/ -x ../templates/i
 # Check convergence and create summary statistics across replicates
 
 ```
+
+
+## Disclaimer
+
+These are scripts from an unfinished project that I thought should probably be online and would be of use to other people. They are provided as is and are not guaranteed to be correct.
