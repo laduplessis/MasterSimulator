@@ -1,0 +1,69 @@
+<!-- 
+    SI model without density-dependence and sampling through time (no rho-sampling)
+
+    Model parameters:
+
+        Canonincal parameterization:
+            Birth rate (lambda)    = {$infectionRate:.8g}
+            Death rate (mu)        = {$recoveryRate:.8g}
+            Sampling rate (psi)    = {$samplingRate:.8g}
+        
+        reproductiveNumber parameterization:
+            reproductiveNumber               = {$reproductiveNumber:.8g}
+            Become uninfectious rate (delta) = {$becomeUninfectiousRate:.8g}
+            Sampling proportion              = {$samplingProportion:.8g}
+
+        All times in years
+
+    Simulate {$nTraj} trajectories.
+    Stop simulation at time {$stopTime} 
+    Sample at {$nSamples} data points between 0 and {$stopTime}
+-->
+
+<beast version='2.0' namespace='master
+                               :master.model                               
+                               :master.outputs
+                               :master.steppers'>
+  
+  <run spec='EnsembleSummary'
+       nTraj="{$nTraj}"
+       nSamples="{$nSamples}"
+       simulationTime="{$stopTime}"
+       verbosity="1">
+
+    <model spec='Model' id='model'>
+      <population spec='Population' id='I' populationName='I'/>
+      <population spec='Population' id='R' populationName='R'/>
+      <population spec='Population' id='Y' populationName='Y'/>
+      
+      <reaction spec='Reaction' reactionName="Infection" rate="{$infectionRate:.8g}">
+          I -> 2I
+      </reaction>
+      <reaction spec='Reaction' reactionName="Recovery" rate="{$recoveryRate:.8g}">
+          I -> R
+      </reaction>
+      <reaction spec='Reaction' reactionName="Sampling" rate="{$samplingRate:.8g}">
+          I:1 -> Y:1
+      </reaction>
+    </model>
+    
+    <initialState spec='InitState'>
+      <populationSize spec='PopulationSize' population='@I' size='1'/>
+    </initialState>
+
+    <moment spec='Moment' momentName='R'>
+      <factor idref='R'/>
+    </moment>
+
+    <moment spec='Moment' momentName='Y'>
+      <factor idref='Y'/>
+    </moment>
+
+    <moment spec='Moment' momentName='I'>
+      <factor idref='I'/>
+    </moment>
+    
+    <output spec='JsonOutput' fileName='{$name}.json'/>
+  </run>
+</beast>
+

@@ -3,16 +3,20 @@ library(rjson)
 library(bdskytools)
 library(yaml)
 
+########################################################
+# Assumes working directory set to source file location
+
 colmap <- list('I'=cblue, "R"=corange, 'E'=cpurple, 'S'=cgreen)
 legmap <- list('I'='Infected', 'R'='Removed', 'E'='Exposed', 'S'='Susceptible')
 
 models <- list("constantRe"="Constant", 
                "decreaseRe"="Piecewise\nconstant",
-               "seir"      ="SEIR  \nmodel")#model <- "decreaseRe")
+               "seir"      ="SEIR  \nmodel")
 numtraces <- 25
 
 model <- names(models)[[1]]
 
+par(mfrow=c(length(models),1))
 for (model in names(models)) {
     
     #####################################################################################
@@ -26,7 +30,7 @@ for (model in names(models)) {
     # Get x and y limits for plots
     maxtimes <- c()
     maxpops  <- c()
-    for (i in traces) {cd 
+    for (i in traces) {
         maxtimes <- c(maxtimes, max(sims$trajectories[[i]]$t))
         
         popmax <- c()
@@ -55,7 +59,7 @@ for (model in names(models)) {
       traj  <- sims$trajectories[[i]]
       for (j in 1:length(names(traj))) {
           type <- names(traj)[j]
-          if (type != 't' && type != 'Y' && type != 'R' && type != 'S')
+          if (type != 't' && type != 'Y' && type != 'R' && type != 'X')
              lines(sims$trajectories[[i]]$t, sims$trajectories[[i]][[type]], col=pal.dark(colmap[[type]],0.3), type='s', lwd=1)    
       }
       
