@@ -8,7 +8,8 @@ legmap <- list('I'='Infected', 'R'='Removed', 'E'='Exposed', 'S'='Susceptible', 
 
 models <- list("constantRe.summary"="Constant", 
                "decreaseRe.summary"="Piecewise\nconstant",
-               "seir.summary"      ="SEIR  \nmodel")
+               "seir.summary"      ="SEIR  \nmodel",
+               "sirs.summary"      ="SIRS  \nmodel")
 
 
 par(mfrow=c(length(models),1))
@@ -24,10 +25,10 @@ for (model in names(models)) {
   #####################################################################################
   # Plot trajectories
   par(mar=c(5,4,4,4)+0.1)
-  plot(1, type='n', xlim=range(sims$t), ylim=range(pretty(c(0,3000))), xlab='Time', ylab='Population', bty='o', las=1, cex.lab=1.5, cex.axis=1.2)
+  plot(1, type='n', xlim=range(sims$t), ylim=range(pretty(c(0,5000))), xlab='Time', ylab='Population', bty='o', las=1, cex.lab=1.5, cex.axis=1.2)
   grid(col=pal.dark(cgray))
   
-  for (type in c("I","E","Y")) {
+  for (type in c("S", "I","E","Y")) {
       if (type %in% names(sims)) {
       
           mean  <- sims[[type]]$mean[[1]]

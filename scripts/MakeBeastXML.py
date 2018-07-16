@@ -90,8 +90,7 @@ def writeReactions(model, output):
 def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, fromOrigin=False):
 
 	#print(simtrajectories['Y'])
-	origin = max(simtrajectories['t'])
-
+	
 	# Sampling times from json file
 	nsamples      = int(simtrajectories['Y'][-1])
 	samplingtimes = np.zeros(nsamples)
@@ -102,8 +101,13 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, from
 			samplingtimes[j] = simtrajectories['t'][i+1]
 			j -= 1
 	#	
-	samplingtimes = (origin-samplingtimes)
 
+	# Origin is the time of the most recent sample, not the simulation end time! 
+	# (MASTER simulations can continue after the last sample has been taken)
+	# origin = max(simtrajectories['t'])
+	origin = samplingtimes[0]
+	samplingtimes = (origin-samplingtimes)
+	
 	# Sampling times from tree
 	tree    = Nexus.Trees.Tree(newicktree)
 	leaves  = tree.get_terminals()
@@ -115,13 +119,19 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, from
 	#
 	tmrca = max(heights)
 	treetimes = tmrca-heights
+
+
+	#print(forwards)
+	#print("%.3f\t%.3f\t%.3f\n" % (samplingtimes[0], tmrca, origin))
+	#print(sorted(samplingtimes))
+	#print(sorted(treetimes))
 	
 	# Compare times	
 	i = 0
 	for t in sorted(treetimes):
 		#sys.stdout.write('\n\t\t\t%.13f=%.13f' %(t, samplingtimes[i]))
 		if (samplingtimes[i]-t > tol):
-			sys.stdout.write("ERROR! Sampling times do not agree!\n")
+			sys.stdout.write("ERROR! Sampling times do not agree! (%.5f vs %.5f)\n" % (samplingtimes[i], t))
 			#sys.stdout.write("%f\t%f\n" % (samplingtimes[i], t))
 			sys.exit()
 		i += 1
@@ -174,8 +184,6 @@ def formatPars(pars, tree, model, simtrajectories):
 	if ("fromOrigin" not in pars.keys()):
 		pars["fromOrigin"] = False
 
-	print(pars["fromOrigin"])
-
 	samplingTimes = getSamplingTimes(simtrajectories, tree, forwards=(pars["dateTrait"] != "date-backward"), fromOrigin=(pars["fromOrigin"]))
 
 	#datetrait =  "date"  "date-forward" "date-backward";
@@ -185,7 +193,7 @@ def formatPars(pars, tree, model, simtrajectories):
 	writeReactions(model, output_model)
 
 	pars["tree"]   	  = tree
-	pars["dateTrait"] = output_dates.getvalue()
+	pars["dates"] = output_dates.getvalue()
 	pars["alignment"] = output_align.getvalue()
 	pars["reactions"] = output_model.getvalue()
 	pars["origin"]    = max(simtrajectories['t'])
@@ -199,6 +207,8 @@ def formatPars(pars, tree, model, simtrajectories):
 
 for filename in sorted(os.listdir(inputpath)):
 	if (fnmatch(filename,config)):
+
+		sys.stdout.write(filename+"\t"+config+"\n")
 
 		# Load config file
 		configfile = open(inputpath+filename, 'r').read().replace("\t"," ")
