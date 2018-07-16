@@ -87,7 +87,7 @@ def writeReactions(model, output):
 # If forwards = False gives times as time from most recent sample
 #
 # If fromOrigin and forwards = True then times are measured from the origin of the simulation
-def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, fromOrigin=False):
+def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, fromOrigin=False, offset=None):
 
 	#print(simtrajectories['Y'])
 	
@@ -137,14 +137,22 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, from
 		i += 1
 	#
 
-	# Gap between origin and tMRCA
+	
 	if (forwards == True):
 		treetimes = (tmrca-treetimes)
 
+		# Gap between origin and tMRCA 
 		if (fromOrigin == True):
 			treetimes = treetimes + (origin-tmrca)
 
+		# Process date offset
+		if (offset != None):
+			treetimes = offset + treetimes
 
+	else:
+		# Process date offset
+		if (offset != None):
+			treetimes = offset - treetimes
 
 	return(treetimes)
 #
@@ -184,9 +192,14 @@ def formatPars(pars, tree, model, simtrajectories):
 	if ("fromOrigin" not in pars.keys()):
 		pars["fromOrigin"] = False
 
-	samplingTimes = getSamplingTimes(simtrajectories, tree, forwards=(pars["dateTrait"] != "date-backward"), fromOrigin=(pars["fromOrigin"]))
+	# Add default dateOffset if not defined
+	if ("dateOffset" not in pars.keys()):
+		pars["dateOffset"] = None
 
-	#datetrait =  "date"  "date-forward" "date-backward";
+	samplingTimes = getSamplingTimes(simtrajectories, tree, forwards=(pars["dateTrait"] != "date-backward"), 
+															fromOrigin=(pars["fromOrigin"]), offset=pars["dateOffset"])
+
+	
 
 	writeDateTrait(samplingTimes, output_dates)
 	writeAlignment(len(samplingTimes), output_align)
