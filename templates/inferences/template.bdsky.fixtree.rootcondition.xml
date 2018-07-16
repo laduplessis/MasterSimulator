@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast beautitemplate='Standard' beautistatus='' required="BDSKY v1.3.3" version="2.4" 
+       namespace="beast.core
+                 :beast.evolution.alignment
+                 :beast.evolution.tree.coalescent
+                 :beast.core.util
+                 :beast.evolution.nuc
+                 :beast.evolution.operators
+                 :beast.evolution.sitemodel
+                 :beast.evolution.substitutionmodel
+                 :beast.evolution.likelihood
+                 :beast.util">
+
+      <map name="Uniform" >beast.math.distributions.Uniform</map>
+      <map name="Exponential" >beast.math.distributions.Exponential</map>
+      <map name="LogNormal" >beast.math.distributions.LogNormalDistributionModel</map>
+      <map name="Normal" >beast.math.distributions.Normal</map>
+      <map name="Beta" >beast.math.distributions.Beta</map>
+      <map name="Gamma" >beast.math.distributions.Gamma</map>
+      <map name="LaplaceDistribution" >beast.math.distributions.LaplaceDistribution</map>
+      <map name="prior" >beast.math.distributions.Prior</map>
+      <map name="InverseGamma" >beast.math.distributions.InverseGamma</map>
+      <map name="OneOnX" >beast.math.distributions.OneOnX</map>
+
+
+      <!-- Model used to simulate tree:
+
+        {$reactions}
+
+      -->
+
+      <!-- Dummy alignment with taxa names -->
+      <alignment spec="beast.evolution.alignment.Alignment" id="alignment" dataType="nucleotide">
+          {$alignment}
+      </alignment>
+
+      <tree spec='TreeParser' id='Tree.t:alignment' IsLabelledNewick="true" adjustTipHeights="false" taxa='@alignment' newick='{$tree}'>
+        <trait id="dateTrait.tree" spec="beast.evolution.tree.TraitSet" traitname="{$dateTrait}">    
+            {$dates}
+            <taxa id="TaxonSet.alignment" spec="TaxonSet">
+                <alignment idref="alignment"/>
+            </taxa>
+        </trait>
+        <taxonset idref="TaxonSet.alignment"/>
+    </tree>
+
+
+<parameter id="reproductiveNumber.t" dimension="10" lower="{$reproductiveNumber_lower}" upper="{$reproductiveNumber_upper}">2.0</parameter>
+<parameter id="becomeUninfectiousRate.t" lower="{$becomeUninfectiousRate_lower}" upper="{$becomeUninfectiousRate_upper}">1.0</parameter>
+<parameter id="samplingProportion.t" dimension="1" lower="{$samplingProportion_lower}" upper="{$samplingProportion_upper}">0.01</parameter>
+
+
+<run id="mcmc" spec="MCMC" chainLength="{$chain}" sampleFromPrior="{$samplePrior}">
+
+      <state id="state" storeEvery="{$state}">
+            <stateNode idref="reproductiveNumber.t"/>
+            <stateNode idref="becomeUninfectiousRate.t"/>
+            <stateNode idref="samplingProportion.t"/>        
+      </state>
+
+      <distribution id="prior" spec="util.CompoundDistribution">
+
+          <!-- Treeprior -->
+          <distribution id="BirthDeathSkySerial.t:alignment" 
+                        spec="beast.evolution.speciation.BirthDeathSkylineModel" 
+                        tree="@Tree.t:alignment"
+                        reproductiveNumber="@reproductiveNumber.t" 
+                        becomeUninfectiousRate="@becomeUninfectiousRate.t" 
+                        samplingProportion="@samplingProportion.t"
+                        conditionOnRoot="true"/>                          
+
+          <!-- Treeprior priors -->
+          <prior id="reproductiveNumberPriorS.t" name="distribution" x="@reproductiveNumber.t">
+                <LogNormal name="distr" M="0.5" S="1" meanInRealSpace="false"/>
+          </prior>
+          <prior id="becomeUninfectiousRatePriorS.t" name="distribution" x="@becomeUninfectiousRate.t">
+                <LogNormal name="distr" M="2.5" S="0.5" meanInRealSpace="false"/>
+          </prior>
+          <prior id="samplingProportionPriorS.t" name="distribution" x="@samplingProportion.t">
+              <Beta name="distr" alpha="1" beta="1"/>
+          </prior> 
+      </distribution> 
+      <!-- prior -->
+
+
+      <!-- begin operators -->
+          <operator id="becomeUninfectiousRateScaler.t:alignment" spec="ScaleOperator" parameter="@becomeUninfectiousRate.t" scaleFactor="0.75" weight="2.0"/>
+
+          <operator id="samplingScaler.t:alignment" spec="ScaleOperator" parameter="@samplingProportion.t" scaleFactor="0.75" weight="2.0"/>
+
+          <operator id="reproductiveNumberScaler.t:alignment" spec="ScaleOperator" parameter="@reproductiveNumber.t" scaleFactor="0.75" weight="10.0"/>
+
+          <operator id="updownBD.t:alignment" spec="UpDownOperator" scaleFactor="0.75" weight="2.0">
+              <up idref="reproductiveNumber.t"/>
+              <down idref="becomeUninfectiousRate.t"/>
+          </operator>
+
+      <!-- end operators -->
+
+
+      <logger id="tracelog" fileName="{$name}_$(seed).log" logEvery="{$log}" model="@prior" sanitiseHeaders="true" sort="smart">
+            <log idref="prior"/>
+            <log id="TreeHeight.t" spec="beast.evolution.tree.TreeHeightLogger" tree="@Tree.t:alignment"/>
+            <log idref="BirthDeathSkySerial.t:alignment"/>
+            <log idref="samplingProportion.t"/>
+            <log idref="becomeUninfectiousRate.t"/>
+            <log idref="reproductiveNumber.t"/>
+      </logger>
+
+      <logger id="screenlog" logEvery="{$screen}">
+            <log idref="prior"/>
+            <log id="ESS.0" spec="util.ESS" arg="@prior"/>
+      </logger>
+
+      <!--logger id="treelog.t:tree" fileName="{$name}_$(seed).trees" logEvery="{$treelog}" mode="tree">
+            <log id="TreeWithMetaDataLogger.t:alignment" spec="beast.evolution.tree.TreeWithMetaDataLogger" tree="@Tree.t:alignment"/>
+      </logger-->
+
+</run>
+
+</beast>

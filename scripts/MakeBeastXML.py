@@ -137,7 +137,7 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, from
 		i += 1
 	#
 
-	
+
 	if (forwards == True):
 		treetimes = (tmrca-treetimes)
 
@@ -145,14 +145,12 @@ def getSamplingTimes(simtrajectories, newicktree, tol=1e-6, forwards=False, from
 		if (fromOrigin == True):
 			treetimes = treetimes + (origin-tmrca)
 
-		# Process date offset
-		if (offset != None):
-			treetimes = offset + treetimes
 
-	else:
-		# Process date offset
-		if (offset != None):
-			treetimes = offset - treetimes
+	# Process date offset
+	if (offset != None):
+		treetimes = offset + treetimes
+
+
 
 	return(treetimes)
 #
